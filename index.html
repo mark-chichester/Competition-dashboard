@@ -848,6 +848,8 @@
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+        width: 100%;
+        min-width: 0;
       }
       .dancer-main-chart-section__title {
         margin: 0 0 0.65rem;
@@ -863,6 +865,10 @@
         background-size: 100% 1px;
         background-position: 0 100%;
         border-bottom-color: transparent;
+      }
+      .dancer-main-chart-section {
+        width: 100%;
+        min-width: 0;
       }
       .dancer-main-bar-wrap {
         cursor: default;
@@ -1494,6 +1500,49 @@
         background: rgba(2, 119, 192, 0.09);
         box-shadow: 0 0 0 1px rgba(2, 119, 192, 0.06);
       }
+      .dancer-cat-modes__row--viz-toggle {
+        width: 100%;
+        gap: 0.55rem;
+        align-items: stretch;
+        margin-bottom: 0.15rem;
+        padding: 0.55rem 0.65rem;
+        border-radius: var(--radius);
+        border: 1px solid rgba(2, 119, 192, 0.12);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.96) 0%,
+          rgba(241, 247, 252, 0.72) 100%
+        );
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+      }
+      .dancer-cat-mode--viz-toggle {
+        flex: 1 1 11rem;
+        min-width: 0;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        line-height: 1.28;
+        letter-spacing: -0.01em;
+        border-radius: 0.65rem;
+        white-space: normal;
+        text-align: center;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      .dancer-cat-mode--viz-toggle.is-active {
+        background: rgba(255, 255, 255, 0.98);
+        border-color: rgba(2, 119, 192, 0.5);
+        box-shadow:
+          0 0 0 1px rgba(2, 119, 192, 0.08),
+          0 4px 14px rgba(2, 119, 192, 0.12);
+      }
+      @media (max-width: 520px) {
+        .dancer-cat-modes__row--viz-toggle {
+          flex-direction: column;
+        }
+        .dancer-cat-mode--viz-toggle {
+          flex-basis: auto;
+        }
+      }
       .dancer-cat-modes--split {
         flex-direction: column;
         align-items: stretch;
@@ -1904,6 +1953,18 @@
       .dancer-cat-chartjs-view {
         width: 100%;
       }
+      .dancer-chart-mode-group--scatter .dancer-cat-modes__row--bar-only {
+        display: none;
+      }
+      .dance-tech-chore-scatter-block {
+        margin: 0 0 1.35rem;
+      }
+      .dance-tech-chore-scatter-block .chart-block__area--scatter {
+        margin-top: 0.35rem;
+      }
+      .chart-block__area--scatter.chart-block__area--dancer-main {
+        margin-top: 0.35rem;
+      }
       .dancer-cat-rail-wrap--chartjs .dancer-cat-chartjs-panel {
         width: 100%;
         min-height: 304px;
@@ -2192,7 +2253,8 @@
       .dancer-cat-rail-wrap--chartjs .dancer-cat-chartjs-canvas-host {
         position: relative;
         width: 100%;
-        min-width: min(100%, 360px);
+        min-width: 0;
+        max-width: 100%;
         height: 264px;
         min-height: 264px;
       }
@@ -2488,6 +2550,8 @@
         margin-top: 0.5rem;
         font-variant-numeric: tabular-nums;
         opacity: 0.92;
+        white-space: pre-line;
+        line-height: 1.25;
       }
       .dancer-cat-bar-wrap--slot {
         flex: 1 1 0;
@@ -6441,11 +6505,35 @@
                   id="dancer-chart-mode-group"
                   aria-label="Category chart metric and scale"
                 >
+                  <div
+                    class="dancer-cat-modes__row dancer-cat-modes__row--viz-toggle"
+                    role="radiogroup"
+                    aria-label="Category chart view"
+                  >
+                    <button
+                      type="button"
+                      class="dancer-cat-mode dancer-cat-mode--viz-toggle is-active"
+                      role="radio"
+                      aria-checked="true"
+                      data-dancer-viz="bars"
+                    >
+                      Scores (totals and percentiles)
+                    </button>
+                    <button
+                      type="button"
+                      class="dancer-cat-mode dancer-cat-mode--viz-toggle"
+                      role="radio"
+                      aria-checked="false"
+                      data-dancer-viz="scatter"
+                    >
+                      Choreography &amp; Technique (scatter plots)
+                    </button>
+                  </div>
                   <p class="dancer-cat-modes__hint">
                     Click a bar for routine details · X-axis uses your sheet’s Comp.&nbsp;No. (or dated events if
                     missing)
                   </p>
-                  <div class="dancer-cat-modes__row" role="radiogroup" aria-label="Score type">
+                  <div class="dancer-cat-modes__row dancer-cat-modes__row--bar-only" role="radiogroup" aria-label="Score type">
                     <button
                       type="button"
                       class="dancer-cat-mode is-active"
@@ -6474,7 +6562,7 @@
                       Choreography avg
                     </button>
                   </div>
-                  <div class="dancer-cat-modes__row" role="radiogroup" aria-label="Score or percentile scale">
+                  <div class="dancer-cat-modes__row dancer-cat-modes__row--bar-only" role="radiogroup" aria-label="Score or percentile scale">
                     <button
                       type="button"
                       class="dancer-cat-mode is-active"
@@ -6674,6 +6762,22 @@
                 <h2 id="dance-outings-title" class="chart-block__title">Outings</h2>
                 <p id="dance-outings-hint" class="dance-outings-hint" role="status"></p>
                 <div id="dance-outings-list" class="dance-outings-host"></div>
+              </section>
+              <section
+                class="chart-block dance-tech-chore-scatter-block"
+                aria-labelledby="dance-scatter-title"
+              >
+                <h2 id="dance-scatter-title" class="chart-block__title">Technique vs. choreography</h2>
+                <p class="dancer-cat-modes__hint" style="margin-top: 0.15rem">
+                  Each point is one scored outing with technique and choreography averages on your sheet. Hover a point
+                  for the competition name and scores.
+                </p>
+                <div
+                  class="chart-block__area chart-block__area--scatter chart-block__area--dancer-main"
+                  id="dance-scatter-area"
+                >
+                  <p class="chart-block__empty">Choose a dance to see scatter plots.</p>
+                </div>
               </section>
               <section class="chart-block chart-block--dance-rail" aria-labelledby="dance-chart-title">
                 <h2 id="dance-chart-title" class="chart-block__title">Event grid</h2>
@@ -11715,6 +11819,8 @@
         var dancerDashboardRelevantRows = null;
         var danceCategoryChartMode = "gt";
         var danceDashboardRelevantRows = null;
+        /** "bars" | "scatter" — Dancers tab category chart visualization */
+        var dancerVizKind = "bars";
 
         function normalizeDancerCategory(raw) {
           var s = String(raw || "")
@@ -12023,6 +12129,31 @@
           return comp + "\t" + date;
         }
 
+        /** Bar chart x-axis: competition name, date on next line (e.g. Imagine + line break + Mar 26). */
+        function buildDancerRailBarTickLabel(compCell, dateCell) {
+          var comp = String(compCell || "").trim();
+          var dRaw = String(dateCell || "").trim();
+          var dLine = "";
+          if (dRaw) {
+            dLine = formatDancerModalShortDate(dRaw);
+            if (dLine) {
+              dLine = String(dLine).replace("-", " ");
+            } else {
+              dLine = dRaw;
+            }
+          }
+          if (comp && dLine) {
+            return comp + "\n" + dLine;
+          }
+          if (comp) {
+            return comp;
+          }
+          if (dLine) {
+            return dLine;
+          }
+          return "";
+        }
+
         function rowCompNoSlotKey(r) {
           var n = getSheetCompetitionNumber(r);
           return isNaN(n) ? "" : String(n);
@@ -12056,6 +12187,8 @@
                 sortKey: parseCompetitionSheetDateLabel(r.Date),
                 displayLabel: [compDisp, dateDisp].filter(Boolean).join(" · "),
                 sheetCompForOrder: compDisp,
+                compLine: compDisp,
+                dateLine: dateDisp,
               };
             }
           });
@@ -12071,15 +12204,18 @@
           });
           var keyToIndex = {};
           var indexToLabel = {};
+          var indexToBarTick = {};
           list.forEach(function (ev, i) {
             var n = i + 1;
             keyToIndex[ev.key] = n;
             indexToLabel[n] = ev.displayLabel || ev.key;
+            indexToBarTick[n] = buildDancerRailBarTickLabel(ev.compLine, ev.dateLine);
           });
           return {
             maxN: list.length,
             keyToIndex: keyToIndex,
             indexToLabel: indexToLabel,
+            indexToBarTick: indexToBarTick,
             timelineSource: "event",
           };
         }
@@ -12106,16 +12242,34 @@
           if (!nums.length) return null;
           var keyToIndexN = {};
           var indexToLabelN = {};
+          var indexToBarTickN = {};
           nums.forEach(function (num, idx) {
             var slot = idx + 1;
             var key = String(num);
             keyToIndexN[key] = slot;
             indexToLabelN[slot] = key;
+            var rep = null;
+            state.rows.forEach(function (r) {
+              if (isNaN(parseGrandTotal(r))) return;
+              var cn = getSheetCompetitionNumber(r);
+              if (!isNaN(cn) && String(cn) === key && !rep) {
+                rep = r;
+              }
+            });
+            var tick =
+              rep != null
+                ? buildDancerRailBarTickLabel(
+                    String(rep.Competition || "").trim(),
+                    String(rep.Date || "").trim(),
+                  )
+                : "";
+            indexToBarTickN[slot] = tick && tick.trim() ? tick : key;
           });
           return {
             maxN: nums.length,
             keyToIndex: keyToIndexN,
             indexToLabel: indexToLabelN,
+            indexToBarTick: indexToBarTickN,
             timelineSource: "compNo",
           };
         }
@@ -12297,6 +12451,471 @@
           });
           dancerRailChartInstances = [];
           pendingDancerRailCharts.length = 0;
+        }
+
+        var dancerScatterChartInstances = [];
+        var pendingDancerScatterCharts = [];
+        var danceScatterChartInstances = [];
+        var pendingDanceScatterCharts = [];
+        var dashboardScatterChartIdCounter = 0;
+
+        function destroyDancerScatterCharts() {
+          dancerScatterChartInstances.forEach(function (ch) {
+            try {
+              if (ch && typeof ch.destroy === "function") {
+                ch.destroy();
+              }
+            } catch (err) {}
+          });
+          dancerScatterChartInstances = [];
+          pendingDancerScatterCharts.length = 0;
+        }
+
+        function destroyDanceScatterCharts() {
+          danceScatterChartInstances.forEach(function (ch) {
+            try {
+              if (ch && typeof ch.destroy === "function") {
+                ch.destroy();
+              }
+            } catch (err) {}
+          });
+          danceScatterChartInstances = [];
+          pendingDanceScatterCharts.length = 0;
+        }
+
+        /** Scatter point colors aligned with category bar gradient fallbacks */
+        var DASH_SCATTER_POINT_COLORS = [
+          "rgba(2, 119, 192, 0.92)",
+          "rgba(41, 164, 209, 0.92)",
+          "rgba(0, 101, 166, 0.92)",
+          "rgba(104, 197, 225, 0.92)",
+          "rgba(13, 82, 135, 0.92)",
+        ];
+
+        function techChoreHonedAxisRange(vals, meanVal) {
+          var combined = vals.length ? vals.slice() : [];
+          if (meanVal != null && !isNaN(meanVal)) {
+            combined.push(meanVal);
+          }
+          if (!combined.length) {
+            return { lo: 44.75, hi: 50.25 };
+          }
+          var mn = Math.min.apply(null, combined);
+          var mx = Math.max.apply(null, combined);
+          var span = Math.max(mx - mn, 0.06);
+          var pad = Math.max(span * 0.2, 0.05);
+          var lo = mn - pad;
+          var hi = mx + pad;
+          if (hi - lo < 0.26) {
+            var mid = (mn + mx) / 2;
+            lo = mid - 0.14;
+            hi = mid + 0.14;
+          }
+          return { lo: lo, hi: hi };
+        }
+
+        function collectTechChoreScatterPoints(catRows) {
+          var pts = [];
+          catRows.forEach(function (r) {
+            if (isNaN(parseGrandTotal(r))) {
+              return;
+            }
+            var tx = parseRowTechniqueAverage(r);
+            var cy = parseRowChoreographyAverage(r);
+            if (isNaN(tx) || isNaN(cy)) {
+              return;
+            }
+            pts.push({ x: tx, y: cy, row: r });
+          });
+          return pts;
+        }
+
+        function techChoreScatterExternalTooltip(context) {
+          var tooltip = context.tooltip;
+          var chart = context.chart;
+          var canvas = chart.canvas;
+          var host = canvas.parentElement;
+          var tip = host && host.querySelector("[data-dancer-rail-hover-tip]");
+          if (!tip) {
+            return;
+          }
+          var inner = tip.querySelector("[data-dancer-rail-hover-inner]");
+          function hideTip() {
+            tip.classList.remove("is-visible");
+            tip.setAttribute("aria-hidden", "true");
+            if (inner) {
+              inner.innerHTML = "";
+            }
+          }
+          if (!tooltip || tooltip.opacity < 0.02) {
+            hideTip();
+            return;
+          }
+          var scatterPts = chart.$techChoreScatterPoints;
+          if (!scatterPts || !scatterPts.length) {
+            hideTip();
+            return;
+          }
+          var pts = tooltip.dataPoints;
+          if (!pts || !pts.length) {
+            hideTip();
+            return;
+          }
+          var dp = null;
+          var pi;
+          for (pi = 0; pi < pts.length; pi++) {
+            if (pts[pi].dataset && pts[pi].dataset.type === "scatter") {
+              dp = pts[pi];
+              break;
+            }
+          }
+          if (!dp || dp.dataIndex == null) {
+            hideTip();
+            return;
+          }
+          var sp = scatterPts[dp.dataIndex];
+          if (!sp || !sp.row) {
+            hideTip();
+            return;
+          }
+          var r = sp.row;
+          var compBase = dancerRailTooltipCompetitionName(r);
+          var datePlain = String(r.Date || "").trim();
+          var compLine = datePlain ? compBase + " · " + datePlain : compBase;
+          var danceLine = dancerRailTooltipDanceName(r);
+          var valueLine =
+            "Tech " + sp.x.toFixed(2) + " · Choreo " + sp.y.toFixed(2);
+          var rowsHtml =
+            '<div class="dancer-rail-bar-hover-tip__row">' +
+            '<span class="dancer-rail-bar-hover-tip__comp">' +
+            escapeHtml(compLine) +
+            '</span><span class="dancer-rail-bar-hover-tip__dance">' +
+            escapeHtml(danceLine) +
+            '</span><span class="dancer-rail-bar-hover-tip__value">' +
+            escapeHtml(valueLine) +
+            "</span></div>";
+          if (inner) {
+            inner.innerHTML = rowsHtml;
+          }
+          var rect = canvas.getBoundingClientRect();
+          var cx = rect.left + (tooltip.caretX != null ? tooltip.caretX : rect.width / 2);
+          var cy = rect.top + (tooltip.caretY != null ? tooltip.caretY : rect.height / 2);
+          var meta = chart.getDatasetMeta(dp.datasetIndex);
+          var elPt = meta && meta.data && meta.data[dp.dataIndex];
+          if (elPt && typeof elPt.x === "number" && typeof elPt.y === "number") {
+            cx = rect.left + elPt.x;
+            cy = rect.top + elPt.y;
+          }
+          tip.style.left = cx + "px";
+          tip.style.top = cy + "px";
+          tip.style.transform = "translate(-50%, calc(-100% - 6px))";
+          tip.classList.add("is-visible");
+          tip.setAttribute("aria-hidden", "false");
+        }
+
+        function buildTechChoreScatterChartJsConfig(points) {
+          var xs = points.map(function (p) {
+            return p.x;
+          });
+          var ys = points.map(function (p) {
+            return p.y;
+          });
+          var meanX =
+            xs.reduce(function (a, b) {
+              return a + b;
+            }, 0) / Math.max(1, xs.length);
+          var meanY =
+            ys.reduce(function (a, b) {
+              return a + b;
+            }, 0) / Math.max(1, ys.length);
+          var xr = techChoreHonedAxisRange(xs, meanX);
+          var yr = techChoreHonedAxisRange(ys, meanY);
+          var xLo = xr.lo;
+          var xHi = xr.hi;
+          var yLo = yr.lo;
+          var yHi = yr.hi;
+          var avgRed = "rgba(224, 55, 62, 0.88)";
+          var prefersReducedMotion =
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          var pointColors = points.map(function (_, i) {
+            return DASH_SCATTER_POINT_COLORS[i % DASH_SCATTER_POINT_COLORS.length];
+          });
+          return {
+            data: {
+              datasets: [
+                {
+                  type: "line",
+                  label: "Category avg · technique",
+                  data: [
+                    { x: meanX, y: yLo },
+                    { x: meanX, y: yHi },
+                  ],
+                  borderColor: avgRed,
+                  borderDash: [6, 5],
+                  borderWidth: 1.5,
+                  pointRadius: 0,
+                  fill: false,
+                  order: 0,
+                },
+                {
+                  type: "line",
+                  label: "Category avg · choreography",
+                  data: [
+                    { x: xLo, y: meanY },
+                    { x: xHi, y: meanY },
+                  ],
+                  borderColor: avgRed,
+                  borderDash: [6, 5],
+                  borderWidth: 1.5,
+                  pointRadius: 0,
+                  fill: false,
+                  order: 0,
+                },
+                {
+                  type: "scatter",
+                  label: "Outings",
+                  data: points.map(function (p) {
+                    return { x: p.x, y: p.y };
+                  }),
+                  backgroundColor: pointColors,
+                  borderColor: "rgba(255, 255, 255, 0.38)",
+                  borderWidth: 1,
+                  hoverBorderColor: "rgba(255, 255, 255, 0.82)",
+                  pointRadius: 7,
+                  pointHoverRadius: 11,
+                  order: 10,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              layout: {
+                padding: {
+                  left: 2,
+                  right: 8,
+                  top: 4,
+                  bottom: 2,
+                },
+              },
+              animation: {
+                duration: prefersReducedMotion ? 0 : 580,
+                easing: "easeOutCubic",
+              },
+              interaction: {
+                mode: "nearest",
+                intersect: true,
+              },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  enabled: false,
+                  external: techChoreScatterExternalTooltip,
+                  animation: false,
+                  mode: "nearest",
+                  intersect: true,
+                  displayColors: false,
+                  borderWidth: 0,
+                  borderColor: "transparent",
+                  backgroundColor: "transparent",
+                  padding: 0,
+                  caretSize: 0,
+                  caretPadding: 0,
+                  cornerRadius: 0,
+                },
+              },
+              scales: {
+                x: {
+                  type: "linear",
+                  position: "bottom",
+                  min: xLo,
+                  max: xHi,
+                  title: {
+                    display: true,
+                    text: "Technique average",
+                    font: { size: 11, weight: "600" },
+                    color: "rgba(0, 0, 0, 0.52)",
+                    padding: { top: 4 },
+                  },
+                  grid: {
+                    color: "rgba(2, 119, 192, 0.085)",
+                    borderDash: [4, 6],
+                    drawTicks: false,
+                  },
+                  border: { display: false },
+                  ticks: {
+                    padding: 6,
+                    maxTicksLimit: 8,
+                    font: { size: 10, weight: "500" },
+                    color: "rgba(0, 0, 0, 0.48)",
+                    callback: function (val) {
+                      return Number(val).toFixed(2);
+                    },
+                  },
+                },
+                y: {
+                  type: "linear",
+                  min: yLo,
+                  max: yHi,
+                  title: {
+                    display: true,
+                    text: "Choreography average",
+                    font: { size: 11, weight: "600" },
+                    color: "rgba(0, 0, 0, 0.52)",
+                    padding: { bottom: 4 },
+                  },
+                  grid: {
+                    color: "rgba(2, 119, 192, 0.085)",
+                    borderDash: [4, 6],
+                    drawTicks: false,
+                  },
+                  border: { display: false },
+                  ticks: {
+                    padding: 6,
+                    maxTicksLimit: 8,
+                    font: { size: 10, weight: "500" },
+                    color: "rgba(0, 0, 0, 0.48)",
+                    callback: function (val) {
+                      return Number(val).toFixed(2);
+                    },
+                  },
+                },
+              },
+            },
+          };
+        }
+
+        function buildTechChoreScatterChartHtml(catRows, scatterSlot) {
+          var points = collectTechChoreScatterPoints(catRows);
+          if (!points.length) {
+            return (
+              '<p class="dancer-cat-chart__empty">No technique &amp; choreography averages on these rows — add sheet columns like Avg. Technique and AVG. Choreo &amp; performance.</p>'
+            );
+          }
+          if (typeof Chart === "undefined") {
+            return '<p class="dancer-cat-chart__empty">Chart library not available for scatter plots.</p>';
+          }
+          dashboardScatterChartIdCounter++;
+          var canvasId = "dash-scatter-canvas-" + dashboardScatterChartIdCounter;
+          var pend = scatterSlot === "dance" ? pendingDanceScatterCharts : pendingDancerScatterCharts;
+          pend.push({ id: canvasId, points: points });
+          return (
+            '<div class="dancer-cat-rail-wrap dancer-cat-rail-wrap--chartjs">' +
+            '<div class="dancer-cat-chartjs-view">' +
+            '<div class="dancer-cat-chartjs-panel" role="img" aria-label="Technique average versus choreography average for scored outings in this category. Red dashed lines mark the mean technique and mean choreography for this category.">' +
+            '<div class="dancer-cat-chartjs-canvas-host">' +
+            '<canvas id="' +
+            canvasId +
+            '" aria-hidden="true"></canvas>' +
+            '<div class="dancer-rail-bar-hover-tip" data-dancer-rail-hover-tip role="tooltip" aria-hidden="true">' +
+            '<div class="dancer-rail-bar-hover-tip__box" data-dancer-rail-hover-box>' +
+            '<div data-dancer-rail-hover-inner></div></div></div></div></div></div>'
+          );
+        }
+
+        function flushPendingDancerScatterCharts() {
+          if (!pendingDancerScatterCharts.length) {
+            return;
+          }
+          applyDashboardChartDefaultsOnce();
+          pendingDancerScatterCharts.forEach(function (p) {
+            var canvas = document.getElementById(p.id);
+            if (!canvas || typeof Chart === "undefined") {
+              return;
+            }
+            try {
+              var cfg = buildTechChoreScatterChartJsConfig(p.points);
+              var chart = new Chart(canvas, cfg);
+              chart.$techChoreScatterPoints = p.points;
+              dancerScatterChartInstances.push(chart);
+            } catch (err) {}
+          });
+          pendingDancerScatterCharts.length = 0;
+        }
+
+        function flushPendingDanceScatterCharts() {
+          if (!pendingDanceScatterCharts.length) {
+            return;
+          }
+          applyDashboardChartDefaultsOnce();
+          pendingDanceScatterCharts.forEach(function (p) {
+            var canvas = document.getElementById(p.id);
+            if (!canvas || typeof Chart === "undefined") {
+              return;
+            }
+            try {
+              var cfg = buildTechChoreScatterChartJsConfig(p.points);
+              var chart = new Chart(canvas, cfg);
+              chart.$techChoreScatterPoints = p.points;
+              danceScatterChartInstances.push(chart);
+            } catch (err) {}
+          });
+          pendingDanceScatterCharts.length = 0;
+        }
+
+        function renderDanceScatterSection(relevantRows) {
+          var mount = document.getElementById("dance-scatter-area");
+          if (!mount) {
+            return;
+          }
+          destroyDanceScatterCharts();
+          if (!relevantRows || !relevantRows.length) {
+            mount.innerHTML =
+              '<p class="chart-block__empty">Choose a dance to see technique–choreography scatter plots.</p>';
+            return;
+          }
+          var dscored = relevantRows.filter(function (r) {
+            return !isNaN(parseGrandTotal(r));
+          });
+          if (!dscored.length) {
+            mount.innerHTML =
+              '<p class="chart-block__empty">No scored routines with grand totals for scatter plots.</p>';
+            return;
+          }
+          var cats = danceCategoriesWithScores(relevantRows);
+          if (!cats.length) {
+            mount.innerHTML =
+              '<p class="chart-block__empty">No scored rows in a recognized category (solo, groups, line, etc.).</p>';
+            return;
+          }
+          var html = '<div class="dancer-main-charts dancer-main-charts--dance-focused">';
+          var i;
+          for (i = 0; i < cats.length; i++) {
+            var ddef = cats[i];
+            var dcatRows = dancerRowsForCategory(relevantRows, ddef.id);
+            html +=
+              '<section class="dancer-main-chart-section" aria-label="' +
+              escapeHtml(ddef.title) +
+              '"><h3 class="dancer-main-chart-section__title">' +
+              escapeHtml(ddef.title) +
+              "</h3>";
+            html += buildTechChoreScatterChartHtml(dcatRows, "dance");
+            html += "</section>";
+          }
+          html += "</div>";
+          mount.innerHTML = html;
+          flushPendingDanceScatterCharts();
+        }
+
+        function syncDancerVizKindUi() {
+          var group = document.getElementById("dancer-chart-mode-group");
+          if (!group) {
+            return;
+          }
+          var hint = group.querySelector(".dancer-cat-modes__hint");
+          var scatter = dancerVizKind === "scatter";
+          group.classList.toggle("dancer-chart-mode-group--scatter", scatter);
+          if (hint) {
+            hint.textContent = scatter
+              ? "Each point is one scored outing. Hover for competition, date, and technique & choreography averages."
+              : "Click a bar for routine details · X-axis uses your sheet’s Comp. No. (or dated events if missing)";
+          }
+          group.querySelectorAll("[data-dancer-viz]").forEach(function (btn) {
+            var on = btn.getAttribute("data-dancer-viz") === dancerVizKind;
+            btn.classList.toggle("is-active", on);
+            btn.setAttribute("aria-checked", on ? "true" : "false");
+          });
         }
 
         function applyDashboardChartDefaultsOnce() {
@@ -12925,6 +13544,12 @@
           var prefersReducedMotion =
             typeof window.matchMedia === "function" &&
             window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          var hasMultiLineTicks =
+            labels &&
+            labels.some(function (lb) {
+              return String(lb || "").indexOf("\n") >= 0;
+            });
+          var xTickBottomPad = hasMultiLineTicks ? (nLab > 14 ? 30 : 24) : nLab > 14 ? 14 : 10;
           var datasets = [];
           var b;
           for (b = 0; b < maxBars; b++) {
@@ -12994,7 +13619,7 @@
                   left: 12,
                   right: 8,
                   top: 8,
-                  bottom: nLab > 14 ? 14 : 10,
+                  bottom: xTickBottomPad,
                 },
               },
               plugins: {
@@ -13052,7 +13677,7 @@
                     display: true,
                     align: "center",
                     crossAlign: "center",
-                    maxRotation: nLab > 10 ? 40 : 0,
+                    maxRotation: hasMultiLineTicks ? 0 : nLab > 10 ? 40 : 0,
                     minRotation: 0,
                     autoSkip: false,
                     font: { size: 10, weight: "600" },
@@ -13144,6 +13769,7 @@
           var maxN = orderInfo.maxN;
           var keyToIndex = orderInfo.keyToIndex;
           var indexToLabel = orderInfo.indexToLabel || {};
+          var indexToBarTick = orderInfo.indexToBarTick || {};
           var timelineIsCompNo = orderInfo.timelineSource === "compNo";
           if (!catRows.length) {
             return '<p class="dancer-cat-chart__empty">No performances in this bucket.</p>';
@@ -13234,7 +13860,7 @@
             }
             bySlot[s].push(it);
           });
-          var idxPhrase = timelineIsCompNo ? "Comp. No. from sheet" : "competition event index";
+          var idxPhrase = timelineIsCompNo ? "Comp. No. from sheet" : "competition name and date";
           var metricWord =
             measureKey === "gt"
               ? "Grand totals"
@@ -13259,10 +13885,14 @@
               maxBars = groupN;
             }
             var tickLabel = String(indexToLabel[slot] != null ? indexToLabel[slot] : slot);
-            var tickTitle = timelineIsCompNo
-              ? "Comp. No. " + tickLabel
-              : indexToLabel[slot] || "Event #" + slot;
-            var tickBody = timelineIsCompNo ? tickLabel : "#" + slot;
+            var tickTitle =
+              indexToLabel[slot] ||
+              (timelineIsCompNo ? "Comp. No. " + tickLabel : "Event #" + slot);
+            var tickBody = indexToBarTick[slot] != null && String(indexToBarTick[slot]).trim() !== ""
+              ? indexToBarTick[slot]
+              : timelineIsCompNo
+                ? tickLabel
+                : "#" + slot;
             slotLabels.push(tickBody);
             tickTitles.push(tickTitle);
           }
@@ -13273,6 +13903,7 @@
             slotStart: slotStart,
             slotEnd: slotEnd,
             indexToLabel: indexToLabel,
+            indexToBarTick: indexToBarTick,
             lo: lo,
             hi: hi,
             mode: modeStr,
@@ -13299,6 +13930,7 @@
           var skipped = model.skipped;
           var aria = model.aria;
           var indexToLabel = model.indexToLabel || {};
+          var indexToBarTick = model.indexToBarTick || {};
           var railClass =
             "dancer-cat-rail" + (isAbs ? "" : " dancer-cat-rail--percentile");
           var html =
@@ -13367,10 +13999,14 @@
             }
             html += "</div>";
             var tickLabel = String(indexToLabel[slot] != null ? indexToLabel[slot] : slot);
-            var tickTitle = timelineIsCompNo
-              ? "Comp. No. " + tickLabel
-              : indexToLabel[slot] || "Event #" + slot;
-            var tickBody = timelineIsCompNo ? tickLabel : "#" + slot;
+            var tickTitle =
+              indexToLabel[slot] ||
+              (timelineIsCompNo ? "Comp. No. " + tickLabel : "Event #" + slot);
+            var tickBody = indexToBarTick[slot] != null && String(indexToBarTick[slot]).trim() !== ""
+              ? indexToBarTick[slot]
+              : timelineIsCompNo
+                ? tickLabel
+                : "#" + slot;
             html +=
               '<span class="dancer-cat-slot__tick" title="' +
               escapeHtml(tickTitle) +
@@ -13896,6 +14532,7 @@
           var area = document.getElementById("dancer-chart-area");
           if (!area) return;
           destroyDancerRailCharts();
+          destroyDancerScatterCharts();
           closeDancerRailDetailModal();
           hideDancerBarTooltip();
           area.classList.remove("chart-block__area--dancer-main");
@@ -13911,6 +14548,28 @@
           if (!scored.length) {
             area.innerHTML =
               '<p class="chart-block__empty">No scored routines for this dancer.</p>';
+            return;
+          }
+          if (dancerVizKind === "scatter") {
+            area.classList.add("chart-block__area--dancer-main");
+            var shtml = '<div class="dancer-main-charts">';
+            var si;
+            for (si = 0; si < DANCER_TOOLBAR_CATEGORIES.length; si++) {
+              var sdef = DANCER_TOOLBAR_CATEGORIES[si];
+              var scatRows = dancerRowsForCategory(relevantRows, sdef.id);
+              shtml +=
+                '<section class="dancer-main-chart-section" aria-label="' +
+                escapeHtml(sdef.title) +
+                '"><h3 class="dancer-main-chart-section__title">' +
+                escapeHtml(sdef.title) +
+                "</h3>";
+              shtml += buildTechChoreScatterChartHtml(scatRows, "dancer");
+              shtml += "</section>";
+            }
+            shtml += "</div>";
+            area.innerHTML = shtml;
+            flushPendingDancerScatterCharts();
+            renderDancerHistorySection(relevantRows);
             return;
           }
           area.classList.add("chart-block__area--dancer-main");
@@ -14040,6 +14699,12 @@
           danceDashboardRelevantRows = null;
           danceCategoryChartMode = "gt";
           collapseDanceCategoryPanel();
+          destroyDanceScatterCharts();
+          var dscMount = document.getElementById("dance-scatter-area");
+          if (dscMount) {
+            dscMount.innerHTML =
+              '<p class="chart-block__empty">Choose a dance to see technique–choreography scatter plots.</p>';
+          }
           if (peakGtEl) peakGtEl.textContent = "—";
           if (peakDanceEl) peakDanceEl.textContent = "";
           if (peakSubEl) peakSubEl.textContent = "";
@@ -14073,6 +14738,7 @@
           dancerDashboardRelevantRows = null;
           dancerChartMeasure = "gt";
           dancerChartScale = "abs";
+          dancerVizKind = "bars";
           collapseDancerCategoryPanel();
           if (peakGtEl) peakGtEl.textContent = "—";
           if (peakDanceEl) peakDanceEl.textContent = "";
@@ -14082,6 +14748,7 @@
           if (grid) grid.innerHTML = "";
           hideDancerBarTooltip();
           closeDancerRailDetailModal();
+          destroyDancerScatterCharts();
           var chartArea = document.getElementById("dancer-chart-area");
           if (chartArea) {
             chartArea.classList.remove("chart-block__area--dancer-main");
@@ -14090,6 +14757,7 @@
           }
           clearDancerHistorySection();
           syncDancerCategoryModeUi();
+          syncDancerVizKindUi();
         }
 
         function updateDancerToolbar(relevantRows) {
@@ -14165,6 +14833,7 @@
               catLine.hidden = true;
             }
             renderDanceOutingsList(relevantRows);
+            renderDanceScatterSection(relevantRows);
             return;
           }
           var dpeakRow = dancerBestGrandTotalRow(dscored);
@@ -14203,6 +14872,7 @@
             }
           }
           renderDanceOutingsList(relevantRows);
+          renderDanceScatterSection(relevantRows);
         }
 
         function populateDancerSelect() {
@@ -14309,6 +14979,7 @@
           updateDancerToolbar(relevant);
           renderDancerMainCharts(relevant);
           syncDancerCategoryModeUi();
+          syncDancerVizKindUi();
         }
 
         function updateDanceView() {
@@ -18038,6 +18709,20 @@
         var dancerViewEl = document.getElementById("view-dancers");
         if (dancerViewEl) {
           dancerViewEl.addEventListener("click", function (e) {
+            var vizPick = e.target.closest("[data-dancer-viz]");
+            if (vizPick && dancerViewEl.contains(vizPick)) {
+              var vk = vizPick.getAttribute("data-dancer-viz");
+              if (
+                (vk === "bars" || vk === "scatter") &&
+                vk !== dancerVizKind &&
+                dancerDashboardRelevantRows
+              ) {
+                dancerVizKind = vk;
+                syncDancerVizKindUi();
+                renderDancerMainCharts(dancerDashboardRelevantRows);
+              }
+              return;
+            }
             var measBtn = e.target.closest("[data-dancer-measure]");
             if (measBtn && dancerViewEl.contains(measBtn)) {
               var dm = measBtn.getAttribute("data-dancer-measure");
