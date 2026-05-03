@@ -2507,8 +2507,8 @@
       }
       .dancer-cat-slot {
         flex: 1 0 34px;
-        min-width: 34px;
-        max-width: 68px;
+        min-width: 38px;
+        max-width: 76px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -2545,13 +2545,15 @@
         text-align: center;
         font-size: 0.62rem;
         font-weight: 800;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.04em;
         color: rgba(0, 0, 0, 0.44);
         margin-top: 0.5rem;
         font-variant-numeric: tabular-nums;
         opacity: 0.92;
         white-space: pre-line;
-        line-height: 1.25;
+        line-height: 1.28;
+        max-width: 100%;
+        word-break: break-word;
       }
       .dancer-cat-bar-wrap--slot {
         flex: 1 1 0;
@@ -12129,29 +12131,88 @@
           return comp + "\t" + date;
         }
 
-        /** Bar chart x-axis: competition name, date on next line (e.g. Imagine + line break + Mar 26). */
-        function buildDancerRailBarTickLabel(compCell, dateCell) {
-          var comp = String(compCell || "").trim();
+        /**
+         * Word-wrap competition name at spaces only (never mid-word — avoids "Revoluti" + "on").
+         * Long single tokens stay on one line; date is added separately by the caller.
+         */
+        function wrapDancerRailTickCompLines(comp, maxCharsPerLine, maxLines) {
+          maxCharsPerLine = Math.max(8, Math.floor(Number(maxCharsPerLine)) || 13);
+          maxLines = Math.max(1, Math.floor(Number(maxLines)) || 4);
+          comp = String(comp || "").trim();
+          if (!comp) {
+            return [];
+          }
+          var words = comp.split(/\s+/).filter(Boolean);
+          var lines = [];
+          var cur = "";
+          var wi = 0;
+          function flush() {
+            if (cur) {
+              lines.push(cur);
+              cur = "";
+            }
+          }
+          while (wi < words.length && lines.length < maxLines) {
+            var w = words[wi];
+            var trial = cur ? cur + " " + w : w;
+            if (trial.length <= maxCharsPerLine) {
+              cur = trial;
+              wi++;
+              continue;
+            }
+            if (cur) {
+              flush();
+              continue;
+            }
+            lines.push(w);
+            wi++;
+          }
+          if (lines.length < maxLines) {
+            flush();
+          }
+          var truncated = wi < words.length;
+          if (truncated && lines.length) {
+            var li = lines.length - 1;
+            lines[li] = lines[li].replace(/\s*…\s*$/, "").replace(/\s+$/, "") + "…";
+          }
+          return lines;
+        }
+
+        /** Bar chart x-axis lines: wrapped comp name(s), then date as the final line (Chart.js string[]). */
+        function buildDancerRailBarTickLabel(compCell, dateCell, maxCharsPerLine) {
+          maxCharsPerLine = maxCharsPerLine == null ? 13 : Math.max(8, maxCharsPerLine);
+          var lines = wrapDancerRailTickCompLines(
+            String(compCell || "").trim(),
+            maxCharsPerLine,
+            4,
+          );
           var dRaw = String(dateCell || "").trim();
           var dLine = "";
           if (dRaw) {
             dLine = formatDancerModalShortDate(dRaw);
             if (dLine) {
-              dLine = String(dLine).replace("-", " ");
+              dLine = String(dLine).replace(/-/g, " ");
             } else {
               dLine = dRaw;
             }
           }
-          if (comp && dLine) {
-            return comp + "\n" + dLine;
-          }
-          if (comp) {
-            return comp;
-          }
+          var out = lines.slice();
           if (dLine) {
-            return dLine;
+            out.push(dLine);
           }
-          return "";
+          return out;
+        }
+
+        function dancerRailTickLabelIsEmpty(tb) {
+          if (tb == null) return true;
+          if (Array.isArray(tb)) {
+            var i;
+            for (i = 0; i < tb.length; i++) {
+              if (String(tb[i] || "").trim()) return false;
+            }
+            return true;
+          }
+          return !String(tb).trim();
         }
 
         function rowCompNoSlotKey(r) {
@@ -12204,18 +12265,21 @@
           });
           var keyToIndex = {};
           var indexToLabel = {};
-          var indexToBarTick = {};
+          var indexToCompLine = {};
+          var indexToDateLine = {};
           list.forEach(function (ev, i) {
             var n = i + 1;
             keyToIndex[ev.key] = n;
             indexToLabel[n] = ev.displayLabel || ev.key;
-            indexToBarTick[n] = buildDancerRailBarTickLabel(ev.compLine, ev.dateLine);
+            indexToCompLine[n] = ev.compLine || "";
+            indexToDateLine[n] = ev.dateLine || "";
           });
           return {
             maxN: list.length,
             keyToIndex: keyToIndex,
             indexToLabel: indexToLabel,
-            indexToBarTick: indexToBarTick,
+            indexToCompLine: indexToCompLine,
+            indexToDateLine: indexToDateLine,
             timelineSource: "event",
           };
         }
@@ -12242,7 +12306,8 @@
           if (!nums.length) return null;
           var keyToIndexN = {};
           var indexToLabelN = {};
-          var indexToBarTickN = {};
+          var indexToCompLineN = {};
+          var indexToDateLineN = {};
           nums.forEach(function (num, idx) {
             var slot = idx + 1;
             var key = String(num);
@@ -12256,20 +12321,15 @@
                 rep = r;
               }
             });
-            var tick =
-              rep != null
-                ? buildDancerRailBarTickLabel(
-                    String(rep.Competition || "").trim(),
-                    String(rep.Date || "").trim(),
-                  )
-                : "";
-            indexToBarTickN[slot] = tick && tick.trim() ? tick : key;
+            indexToCompLineN[slot] = rep != null ? String(rep.Competition || "").trim() : "";
+            indexToDateLineN[slot] = rep != null ? String(rep.Date || "").trim() : "";
           });
           return {
             maxN: nums.length,
             keyToIndex: keyToIndexN,
             indexToLabel: indexToLabelN,
-            indexToBarTick: indexToBarTickN,
+            indexToCompLine: indexToCompLineN,
+            indexToDateLine: indexToDateLineN,
             timelineSource: "compNo",
           };
         }
@@ -13544,12 +13604,26 @@
           var prefersReducedMotion =
             typeof window.matchMedia === "function" &&
             window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          var hasMultiLineTicks =
-            labels &&
-            labels.some(function (lb) {
-              return String(lb || "").indexOf("\n") >= 0;
-            });
-          var xTickBottomPad = hasMultiLineTicks ? (nLab > 14 ? 30 : 24) : nLab > 14 ? 14 : 10;
+          var maxTickLines = 1;
+          if (labels && labels.length) {
+            var li;
+            for (li = 0; li < labels.length; li++) {
+              var lab = labels[li];
+              var nl = Array.isArray(lab)
+                ? lab.length
+                : String(lab || "").split("\n").length;
+              if (nl > maxTickLines) {
+                maxTickLines = nl;
+              }
+            }
+          }
+          var hasMultiLineTicks = maxTickLines > 1;
+          var xTickBottomPad = hasMultiLineTicks
+            ? Math.min(56, 10 + maxTickLines * 11)
+            : nLab > 14
+              ? 14
+              : 10;
+          var xTickFontSize = maxTickLines >= 4 ? 9 : maxTickLines >= 3 ? 9.5 : 10;
           var datasets = [];
           var b;
           for (b = 0; b < maxBars; b++) {
@@ -13680,20 +13754,25 @@
                     maxRotation: hasMultiLineTicks ? 0 : nLab > 10 ? 40 : 0,
                     minRotation: 0,
                     autoSkip: false,
-                    font: { size: 10, weight: "600" },
+                    font: { size: xTickFontSize, weight: "600" },
                     color: "rgba(0, 0, 0, 0.58)",
                     padding: 4,
                     callback: function (tickValue) {
                       var scale = this;
                       if (scale && typeof scale.getLabelForValue === "function") {
-                        return String(scale.getLabelForValue(tickValue));
+                        var gl = scale.getLabelForValue(tickValue);
+                        if (gl == null) return "";
+                        if (Array.isArray(gl)) return gl;
+                        return String(gl);
                       }
                       var idx =
                         typeof tickValue === "number"
                           ? tickValue
                           : labels.indexOf(String(tickValue));
                       var lab = idx >= 0 ? labels[idx] : tickValue;
-                      return lab != null ? String(lab) : "";
+                      if (lab == null) return "";
+                      if (Array.isArray(lab)) return lab;
+                      return String(lab);
                     },
                   },
                 },
@@ -13769,7 +13848,8 @@
           var maxN = orderInfo.maxN;
           var keyToIndex = orderInfo.keyToIndex;
           var indexToLabel = orderInfo.indexToLabel || {};
-          var indexToBarTick = orderInfo.indexToBarTick || {};
+          var indexToCompLine = orderInfo.indexToCompLine || {};
+          var indexToDateLine = orderInfo.indexToDateLine || {};
           var timelineIsCompNo = orderInfo.timelineSource === "compNo";
           if (!catRows.length) {
             return '<p class="dancer-cat-chart__empty">No performances in this bucket.</p>';
@@ -13878,6 +13958,9 @@
           var slotLabels = [];
           var tickTitles = [];
           var maxBars = 0;
+          var slotSpan = slotEnd - slotStart + 1;
+          var tickWrapChars =
+            slotSpan > 16 ? 8 : slotSpan > 12 ? 10 : slotSpan > 8 ? 12 : 14;
           var slot;
           for (slot = slotStart; slot <= slotEnd; slot++) {
             var groupN = (bySlot[slot] || []).length;
@@ -13888,11 +13971,14 @@
             var tickTitle =
               indexToLabel[slot] ||
               (timelineIsCompNo ? "Comp. No. " + tickLabel : "Event #" + slot);
-            var tickBody = indexToBarTick[slot] != null && String(indexToBarTick[slot]).trim() !== ""
-              ? indexToBarTick[slot]
-              : timelineIsCompNo
-                ? tickLabel
-                : "#" + slot;
+            var tickBody = buildDancerRailBarTickLabel(
+              indexToCompLine[slot],
+              indexToDateLine[slot],
+              tickWrapChars,
+            );
+            if (dancerRailTickLabelIsEmpty(tickBody)) {
+              tickBody = timelineIsCompNo ? tickLabel : "#" + slot;
+            }
             slotLabels.push(tickBody);
             tickTitles.push(tickTitle);
           }
@@ -13903,7 +13989,6 @@
             slotStart: slotStart,
             slotEnd: slotEnd,
             indexToLabel: indexToLabel,
-            indexToBarTick: indexToBarTick,
             lo: lo,
             hi: hi,
             mode: modeStr,
@@ -13930,7 +14015,7 @@
           var skipped = model.skipped;
           var aria = model.aria;
           var indexToLabel = model.indexToLabel || {};
-          var indexToBarTick = model.indexToBarTick || {};
+          var labels = model.labels || [];
           var railClass =
             "dancer-cat-rail" + (isAbs ? "" : " dancer-cat-rail--percentile");
           var html =
@@ -14002,11 +14087,16 @@
             var tickTitle =
               indexToLabel[slot] ||
               (timelineIsCompNo ? "Comp. No. " + tickLabel : "Event #" + slot);
-            var tickBody = indexToBarTick[slot] != null && String(indexToBarTick[slot]).trim() !== ""
-              ? indexToBarTick[slot]
-              : timelineIsCompNo
-                ? tickLabel
-                : "#" + slot;
+            var tickIx = slot - slotStart;
+            var tickRaw = labels[tickIx];
+            var tickBody =
+              tickRaw != null && !dancerRailTickLabelIsEmpty(tickRaw)
+                ? Array.isArray(tickRaw)
+                  ? tickRaw.join("\n")
+                  : String(tickRaw)
+                : timelineIsCompNo
+                  ? tickLabel
+                  : "#" + slot;
             html +=
               '<span class="dancer-cat-slot__tick" title="' +
               escapeHtml(tickTitle) +
