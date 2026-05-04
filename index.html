@@ -2752,6 +2752,19 @@
       .comp-results-filters {
         margin-top: 0.65rem;
       }
+      .comp-viz-toggle-wrap {
+        margin: 0.5rem 0 0.35rem;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .comp-viz-toggle-wrap .comp-viz-modes {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+      }
+      .comp-results-scatter-block {
+        margin-top: 0.35rem;
+      }
       .comp-pick {
         width: 100%;
         max-width: none;
@@ -5624,13 +5637,43 @@
       }
       .hist-modal-dancer-list li {
         margin: 0;
-        padding: 0.5rem 0.65rem;
+        padding: 0;
         border-radius: 0.45rem;
         background: rgba(0, 0, 0, 0.04);
         font-size: 0.875rem;
         font-weight: 600;
         color: rgba(0, 0, 0, 0.82);
         border-left: 3px solid var(--brand-red);
+        overflow: hidden;
+      }
+      .hist-modal-dancer-name {
+        display: block;
+        padding: 0.5rem 0.65rem;
+      }
+      .hist-modal-dancer-link {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: 0.5rem 0.65rem;
+        border: none;
+        background: transparent;
+        font: inherit;
+        font-weight: 600;
+        color: inherit;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 0;
+        transition:
+          color var(--transition),
+          background var(--transition);
+      }
+      .hist-modal-dancer-link:hover {
+        background: rgba(2, 119, 192, 0.1);
+        color: var(--brand-blue);
+      }
+      .hist-modal-dancer-link:focus-visible {
+        outline: 2px solid var(--brand-blue);
+        outline-offset: -2px;
       }
       .compare-suite {
         margin-top: 0.5rem;
@@ -7561,44 +7604,96 @@
             </div>
           </div>
         </div>
-        <div class="historical-suite__divider" role="presentation"></div>
-        <div
-          class="historical-suite__spotlight"
-          role="group"
-          aria-labelledby="comp-spotlight-heading"
-        >
-          <span class="historical-suite__label" id="comp-spotlight-heading">Spotlight</span>
-          <div id="comp-spotlight-cat-rail" class="hist-spotlight-cat-rail" aria-label="Spotlight category"></div>
-          <div id="comp-spotlight-list" class="hist-spotlight-list--row"></div>
-        </div>
-        <div class="hist-panel">
-          <div class="hist-panel__head">
-            <div>
-              <h2 class="hist-panel__title" id="comp-results-panel-title">All routines</h2>
-              <p class="hist-panel__subtitle" id="comp-results-panel-subtitle"></p>
+        <div id="comp-viz-toggle-wrap" class="comp-viz-toggle-wrap" hidden>
+          <div
+            class="dancer-cat-modes dancer-cat-modes--split comp-viz-modes"
+            id="comp-chart-mode-group"
+            aria-label="Competition results chart view"
+          >
+            <div
+              class="dancer-cat-modes__row dancer-cat-modes__row--viz-toggle"
+              role="radiogroup"
+              aria-label="Results visualization"
+            >
+              <button
+                type="button"
+                class="dancer-cat-mode dancer-cat-mode--viz-toggle is-active"
+                role="radio"
+                aria-checked="true"
+                data-comp-viz="list"
+              >
+                Scores (List)
+              </button>
+              <button
+                type="button"
+                class="dancer-cat-mode dancer-cat-mode--viz-toggle"
+                role="radio"
+                aria-checked="false"
+                data-comp-viz="scatter"
+              >
+                Choreography &amp; Technique (scatter plots)
+              </button>
             </div>
           </div>
-          <div class="table-wrap table-wrap--hist">
-            <table class="data-table comp-results-table" id="comp-results-table">
-              <thead>
-                <tr>
-                  <th scope="col">Rank</th>
-                  <th scope="col">Dance name</th>
-                  <th scope="col">Category</th>
-                  <th scope="col">Level</th>
-                  <th scope="col">Age</th>
-                  <th scope="col">Score</th>
-                  <th scope="col">Dancers</th>
-                </tr>
-              </thead>
-              <tbody id="comp-results-body"></tbody>
-            </table>
-            <div id="comp-lb-sentinel" class="hist-lb-sentinel" aria-hidden="true"></div>
+        </div>
+        <div id="comp-results-list-stack">
+          <div class="historical-suite__divider" role="presentation"></div>
+          <div
+            class="historical-suite__spotlight"
+            role="group"
+            aria-labelledby="comp-spotlight-heading"
+          >
+            <span class="historical-suite__label" id="comp-spotlight-heading">Spotlight</span>
+            <div id="comp-spotlight-cat-rail" class="hist-spotlight-cat-rail" aria-label="Spotlight category"></div>
+            <div id="comp-spotlight-list" class="hist-spotlight-list--row"></div>
           </div>
-          <div class="hist-lb-footer">
-            <p class="hist-footnote" id="comp-table-note" style="display: none"></p>
+          <div class="hist-panel">
+            <div class="hist-panel__head">
+              <div>
+                <h2 class="hist-panel__title" id="comp-results-panel-title">All routines</h2>
+                <p class="hist-panel__subtitle" id="comp-results-panel-subtitle"></p>
+              </div>
+            </div>
+            <div class="table-wrap table-wrap--hist">
+              <table class="data-table comp-results-table" id="comp-results-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Rank</th>
+                    <th scope="col">Dance name</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Level</th>
+                    <th scope="col">Age</th>
+                    <th scope="col">Score</th>
+                    <th scope="col">Dancers</th>
+                  </tr>
+                </thead>
+                <tbody id="comp-results-body"></tbody>
+              </table>
+              <div id="comp-lb-sentinel" class="hist-lb-sentinel" aria-hidden="true"></div>
+            </div>
+            <div class="hist-lb-footer">
+              <p class="hist-footnote" id="comp-table-note" style="display: none"></p>
+            </div>
+            <p class="hist-footnote filter-empty" id="comp-filter-empty" style="display: none" role="status"></p>
           </div>
-          <p class="hist-footnote filter-empty" id="comp-filter-empty" style="display: none" role="status"></p>
+        </div>
+        <div id="comp-results-scatter-block" class="comp-results-scatter-block" hidden>
+          <section
+            class="chart-block dance-tech-chore-scatter-block"
+            aria-labelledby="comp-scatter-title"
+          >
+            <h2 id="comp-scatter-title" class="chart-block__title">Technique vs. choreography</h2>
+            <p class="dancer-cat-modes__hint" style="margin-top: 0.15rem">
+              Routines at this event after filters. Each point uses your sheet&rsquo;s technique and choreography
+              averages — hover for the dance name and scores.
+            </p>
+            <div
+              class="chart-block__area chart-block__area--scatter chart-block__area--dancer-main"
+              id="comp-scatter-charts-area"
+            >
+              <p class="chart-block__empty">Select an event and view scores to see scatter plots.</p>
+            </div>
+          </section>
         </div>
       </section>
     </main>
@@ -7842,6 +7937,8 @@
         var compPickStep = 0;
         /** After "View scores", table + spotlight show; shell hides behind summary bar. */
         var compResultsReleased = false;
+        /** Competition results main area: table spotlight (list) vs technique–choreography scatter plots. */
+        var compVizKind = "list";
 
         function setCompPickPaneStep(step, instant) {
           var shell = document.getElementById("comp-pick-shell");
@@ -9999,6 +10096,35 @@
           histModalReturnFocus = null;
         }
 
+        function goToDancerProfileFromCast(resolvedOrRawName) {
+          var resolved = resolveDancerRosterName(resolvedOrRawName);
+          if (!resolved) {
+            return;
+          }
+          closeHistModal();
+          var onDancers = (location.hash || "").replace(/^#/, "").toLowerCase() === "dancers";
+          var apply = function () {
+            var sel = document.getElementById("dancer-select");
+            if (!sel) {
+              return;
+            }
+            sel.value = resolved;
+            sel.dispatchEvent(new Event("change", { bubbles: true }));
+            var search = document.getElementById("dancer-search");
+            if (search) {
+              search.value = "";
+            }
+            renderDancerPickerChips();
+            filterDancerChips();
+          };
+          if (onDancers) {
+            apply();
+          } else {
+            location.hash = "dancers";
+            window.setTimeout(apply, 0);
+          }
+        }
+
         function histModalKeydown(e) {
           if (e.key === "Escape") {
             e.preventDefault();
@@ -10399,7 +10525,18 @@
           if (names.length) {
             body = '<ul class="hist-modal-dancer-list">';
             names.forEach(function (n) {
-              body += "<li>" + escapeHtml(n) + "</li>";
+              var rosterKey = resolveDancerRosterName(n);
+              if (rosterKey) {
+                body +=
+                  '<li><button type="button" class="hist-modal-dancer-link" data-dancer-jump="' +
+                  encodeURIComponent(rosterKey) +
+                  '" title="Open this dancer in the Dancers tab">' +
+                  escapeHtml(n) +
+                  "</button></li>";
+              } else {
+                body +=
+                  "<li><span class=\"hist-modal-dancer-name\">" + escapeHtml(n) + "</span></li>";
+              }
             });
             body += "</ul>";
           } else {
@@ -10465,6 +10602,18 @@
           if (modal && !modal.dataset.histBackdropBound) {
             modal.dataset.histBackdropBound = "1";
             modal.addEventListener("click", function (e) {
+              var jumpBtn = e.target.closest(".hist-modal-dancer-link");
+              if (jumpBtn && modal.contains(jumpBtn)) {
+                e.preventDefault();
+                var enc = jumpBtn.getAttribute("data-dancer-jump");
+                if (!enc) {
+                  return;
+                }
+                try {
+                  goToDancerProfileFromCast(decodeURIComponent(enc));
+                } catch (errJump) {}
+                return;
+              }
               if (e.target.closest("[data-hist-modal-close]")) closeHistModal();
             });
           }
@@ -11092,6 +11241,27 @@
             });
           });
           return m;
+        }
+
+        /** Map a cast / sheet dancer string to a roster key from scored rows (exact match, then case-insensitive). */
+        function resolveDancerRosterName(raw) {
+          var name = String(raw || "").trim();
+          if (!name) {
+            return null;
+          }
+          var agg = aggregateDancers(state.rows);
+          if (agg[name]) {
+            return name;
+          }
+          var lower = name.toLowerCase();
+          var keys = Object.keys(agg);
+          var ki;
+          for (ki = 0; ki < keys.length; ki++) {
+            if (keys[ki].toLowerCase() === lower) {
+              return keys[ki];
+            }
+          }
+          return null;
         }
 
         /** Unique Dance name values (non-empty) from scored rows — for the Dances teacher view. */
@@ -12517,6 +12687,8 @@
         var pendingDancerScatterCharts = [];
         var danceScatterChartInstances = [];
         var pendingDanceScatterCharts = [];
+        var compScatterChartInstances = [];
+        var pendingCompScatterCharts = [];
         var dashboardScatterChartIdCounter = 0;
 
         function destroyDancerScatterCharts() {
@@ -12541,6 +12713,18 @@
           });
           danceScatterChartInstances = [];
           pendingDanceScatterCharts.length = 0;
+        }
+
+        function destroyCompScatterCharts() {
+          compScatterChartInstances.forEach(function (ch) {
+            try {
+              if (ch && typeof ch.destroy === "function") {
+                ch.destroy();
+              }
+            } catch (err) {}
+          });
+          compScatterChartInstances = [];
+          pendingCompScatterCharts.length = 0;
         }
 
         /** Scatter point colors aligned with category bar gradient fallbacks */
@@ -12858,7 +13042,12 @@
           }
           dashboardScatterChartIdCounter++;
           var canvasId = "dash-scatter-canvas-" + dashboardScatterChartIdCounter;
-          var pend = scatterSlot === "dance" ? pendingDanceScatterCharts : pendingDancerScatterCharts;
+          var pend =
+            scatterSlot === "dance"
+              ? pendingDanceScatterCharts
+              : scatterSlot === "comp"
+                ? pendingCompScatterCharts
+                : pendingDancerScatterCharts;
           pend.push({ id: canvasId, points: points });
           return (
             '<div class="dancer-cat-rail-wrap dancer-cat-rail-wrap--chartjs">' +
@@ -12914,6 +13103,26 @@
           pendingDanceScatterCharts.length = 0;
         }
 
+        function flushPendingCompScatterCharts() {
+          if (!pendingCompScatterCharts.length) {
+            return;
+          }
+          applyDashboardChartDefaultsOnce();
+          pendingCompScatterCharts.forEach(function (p) {
+            var canvas = document.getElementById(p.id);
+            if (!canvas || typeof Chart === "undefined") {
+              return;
+            }
+            try {
+              var cfg = buildTechChoreScatterChartJsConfig(p.points);
+              var chart = new Chart(canvas, cfg);
+              chart.$techChoreScatterPoints = p.points;
+              compScatterChartInstances.push(chart);
+            } catch (err) {}
+          });
+          pendingCompScatterCharts.length = 0;
+        }
+
         function renderDanceScatterSection(relevantRows) {
           var mount = document.getElementById("dance-scatter-area");
           if (!mount) {
@@ -12956,6 +13165,83 @@
           html += "</div>";
           mount.innerHTML = html;
           flushPendingDanceScatterCharts();
+        }
+
+        function renderCompetitionScatterSection(filteredRows) {
+          var mount = document.getElementById("comp-scatter-charts-area");
+          if (!mount) {
+            return;
+          }
+          destroyCompScatterCharts();
+          if (!filteredRows || !filteredRows.length) {
+            mount.innerHTML =
+              '<p class="chart-block__empty">No routines match — try clearing filters or search.</p>';
+            return;
+          }
+          var scored = filteredRows.filter(function (r) {
+            return !isNaN(parseGrandTotal(r));
+          });
+          if (!scored.length) {
+            mount.innerHTML =
+              '<p class="chart-block__empty">No scored routines with grand totals for scatter plots.</p>';
+            return;
+          }
+          var cats = danceCategoriesWithScores(filteredRows);
+          if (!cats.length) {
+            mount.innerHTML =
+              '<p class="chart-block__empty">No scored rows in a recognized category (solo, groups, line, etc.).</p>';
+            return;
+          }
+          var html = '<div class="dancer-main-charts dancer-main-charts--dance-focused">';
+          var ci;
+          for (ci = 0; ci < cats.length; ci++) {
+            var cdef = cats[ci];
+            var ccatRows = dancerRowsForCategory(filteredRows, cdef.id);
+            html +=
+              '<section class="dancer-main-chart-section" aria-label="' +
+              escapeHtml(cdef.title) +
+              '"><h3 class="dancer-main-chart-section__title">' +
+              escapeHtml(cdef.title) +
+              "</h3>";
+            html += buildTechChoreScatterChartHtml(ccatRows, "comp");
+            html += "</section>";
+          }
+          html += "</div>";
+          mount.innerHTML = html;
+          flushPendingCompScatterCharts();
+        }
+
+        function syncCompVizKindUi() {
+          var group = document.getElementById("comp-chart-mode-group");
+          if (!group) {
+            return;
+          }
+          group.querySelectorAll("[data-comp-viz]").forEach(function (btn) {
+            var on = btn.getAttribute("data-comp-viz") === compVizKind;
+            btn.classList.toggle("is-active", on);
+            btn.setAttribute("aria-checked", on ? "true" : "false");
+          });
+        }
+
+        function hideCompetitionResultsVizChrome() {
+          var vizWrap = document.getElementById("comp-viz-toggle-wrap");
+          if (vizWrap) {
+            vizWrap.hidden = true;
+          }
+          destroyCompScatterCharts();
+          var scatterBlock = document.getElementById("comp-results-scatter-block");
+          var listStack = document.getElementById("comp-results-list-stack");
+          if (scatterBlock) {
+            scatterBlock.hidden = true;
+            var area = document.getElementById("comp-scatter-charts-area");
+            if (area) {
+              area.innerHTML =
+                '<p class="chart-block__empty">Select an event and view scores to see scatter plots.</p>';
+            }
+          }
+          if (listStack) {
+            listStack.hidden = false;
+          }
         }
 
         function syncDancerVizKindUi() {
@@ -15363,6 +15649,7 @@
           var fe = document.getElementById("comp-filter-empty");
           var compFWrap = document.getElementById("comp-results-filters-wrap");
           if (!tbody) {
+            hideCompetitionResultsVizChrome();
             updateCompResultsPanelHead();
             return;
           }
@@ -15406,6 +15693,7 @@
             compResultsReleased = false;
             setCompPickPaneStep(0, true);
             syncCompPickChrome();
+            hideCompetitionResultsVizChrome();
             updateCompResultsPanelHead();
             return;
           }
@@ -15444,6 +15732,7 @@
               fe.style.display = "none";
             }
             syncCompPickChrome();
+            hideCompetitionResultsVizChrome();
             updateCompResultsPanelHead();
             return;
           }
@@ -15475,6 +15764,7 @@
               fe.style.display = "none";
             }
             syncCompPickChrome();
+            hideCompetitionResultsVizChrome();
             updateCompResultsPanelHead();
             return;
           }
@@ -15529,6 +15819,7 @@
               fe.style.display = "none";
             }
             syncCompPickChrome(eventRows.length);
+            hideCompetitionResultsVizChrome();
             updateCompResultsPanelHead();
             return;
           }
@@ -15541,6 +15832,7 @@
             clearCompetitionFiltersQuiet();
             populateCompetitionFilters(eventRows);
             compLeaderboardViewSig = "";
+            compVizKind = "list";
           }
 
           var compF = readCompetitionFilterState();
@@ -15733,7 +16025,39 @@
             }
           }
 
-          setupCompLeaderboardInfiniteScroll();
+          var vizWrap = document.getElementById("comp-viz-toggle-wrap");
+          if (vizWrap) {
+            vizWrap.hidden = false;
+          }
+          syncCompVizKindUi();
+
+          var listStack = document.getElementById("comp-results-list-stack");
+          var scatterBlock = document.getElementById("comp-results-scatter-block");
+          if (compVizKind === "scatter") {
+            if (listStack) {
+              listStack.hidden = true;
+            }
+            if (scatterBlock) {
+              scatterBlock.hidden = false;
+            }
+            disconnectCompObserver();
+            renderCompetitionScatterSection(filtered);
+          } else {
+            destroyCompScatterCharts();
+            if (scatterBlock) {
+              scatterBlock.hidden = true;
+              var scArea = document.getElementById("comp-scatter-charts-area");
+              if (scArea) {
+                scArea.innerHTML =
+                  '<p class="chart-block__empty">Select an event and view scores to see scatter plots.</p>';
+              }
+            }
+            if (listStack) {
+              listStack.hidden = false;
+            }
+            setupCompLeaderboardInfiniteScroll();
+          }
+
           syncCompPickChrome(eventRows.length);
           updateCompResultsPanelHead();
         }
@@ -16526,6 +16850,7 @@
               compResultsReleased = false;
               compViewBrandId = null;
               compViewDate = null;
+              compVizKind = "list";
               setCompPickPaneStep(0, true);
               clearCompetitionFiltersQuiet();
               updateCompetitionView();
@@ -18728,6 +19053,20 @@
         var compViewSection = document.getElementById("view-competitions");
         if (compViewSection) {
           compViewSection.addEventListener("click", function (e) {
+            var compVizPick = e.target.closest("[data-comp-viz]");
+            if (compVizPick && compViewSection.contains(compVizPick)) {
+              var cvk = compVizPick.getAttribute("data-comp-viz");
+              if (
+                (cvk === "list" || cvk === "scatter") &&
+                cvk !== compVizKind &&
+                compResultsReleased
+              ) {
+                compVizKind = cvk;
+                syncCompVizKindUi();
+                updateCompetitionView();
+              }
+              return;
+            }
             var backBtn = e.target.closest("#comp-pick-back");
             if (backBtn) {
               compResultsReleased = false;
@@ -18747,9 +19086,13 @@
               compResultsReleased = true;
               updateCompetitionView();
               window.requestAnimationFrame(function () {
-                var wrap = document.querySelector("#view-competitions .table-wrap--hist");
-                if (wrap && wrap.scrollIntoView) {
-                  wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+                var scrollTarget =
+                  compVizKind === "scatter"
+                    ? document.getElementById("comp-results-scatter-block")
+                    : document.getElementById("comp-viz-toggle-wrap") ||
+                      document.querySelector("#view-competitions .table-wrap--hist");
+                if (scrollTarget && scrollTarget.scrollIntoView) {
+                  scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
               });
               return;
