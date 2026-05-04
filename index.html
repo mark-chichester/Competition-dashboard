@@ -11401,10 +11401,14 @@
           return String(row["Dance Name"] || "").trim() === danceTitle;
         }
 
-        /** @see showLoadingSplash — used so fast hosts (e.g. GitHub Pages + same-origin JSON) still show the splash briefly. */
+        /** @see showLoadingSplash — manufactured splash duration + eased bar (independent of fast fetch). */
         var loadingSplashShownAt = 0;
-        var LOADING_SPLASH_MIN_MS = 800;
-
+        /** Minimum time the splash stays up before scores are applied (ms). */
+        var LOADING_SPLASH_MANUFACTURED_MS = 4500;
+        /** Time to hold full bar before fade after data is committed (ms). */
+        var LOADING_SPLASH_FINISH_HOLD_MS = 520;
+        var loadingSplashManufacturedRaf = null;
+        var loadingSplashPendingRows = null;
         var LOADING_SPLASH_PHRASES = [
           "Dancers, take the floor…",
           "Running it from the top…",
@@ -11419,6 +11423,50 @@
         ];
         var loadingSplashPhraseTimer = null;
         var loadingSplashPhraseIndex = 0;
+
+        function stopLoadingSplashManufactured() {
+          if (loadingSplashManufacturedRaf != null) {
+            window.cancelAnimationFrame(loadingSplashManufacturedRaf);
+            loadingSplashManufacturedRaf = null;
+          }
+        }
+
+        function manufacturedSplashTick() {
+          var bar = document.getElementById("app-loading-bar");
+          if (!bar || bar.classList.contains("is-done")) {
+            stopLoadingSplashManufactured();
+            return;
+          }
+          var elapsed = Date.now() - loadingSplashShownAt;
+          if (loadingSplashPendingRows && elapsed >= LOADING_SPLASH_MANUFACTURED_MS) {
+            tryRevealLoadingSplash();
+            return;
+          }
+          var tCap = Math.min(1, elapsed / LOADING_SPLASH_MANUFACTURED_MS);
+          var eased = 1 - Math.pow(1 - tCap, 2);
+          var pct = Math.min(92, Math.round(eased * 92));
+          setLoadingSplashProgress(pct);
+          loadingSplashManufacturedRaf = window.requestAnimationFrame(manufacturedSplashTick);
+        }
+
+        function startLoadingSplashManufactured() {
+          stopLoadingSplashManufactured();
+          loadingSplashManufacturedRaf = window.requestAnimationFrame(manufacturedSplashTick);
+        }
+
+        function tryRevealLoadingSplash() {
+          if (!loadingSplashPendingRows) return;
+          if (Date.now() - loadingSplashShownAt < LOADING_SPLASH_MANUFACTURED_MS) return;
+          var rows = loadingSplashPendingRows;
+          loadingSplashPendingRows = null;
+          stopLoadingSplashManufactured();
+          applyScoreRows(rows);
+        }
+
+        function queueApplyScoreRows(rows) {
+          loadingSplashPendingRows = rows;
+          tryRevealLoadingSplash();
+        }
 
         function resetLoadingSplashProgress() {
           var bar = document.getElementById("app-loading-bar");
@@ -11473,15 +11521,20 @@
         function showLoadingSplash() {
           var el = document.getElementById("app-loading");
           if (!el) return;
+          loadingSplashPendingRows = null;
           loadingSplashShownAt = Date.now();
+          stopLoadingSplashManufactured();
           resetLoadingSplashProgress();
           startLoadingSplashPhrases();
+          startLoadingSplashManufactured();
           el.classList.remove("is-hidden");
           el.setAttribute("aria-busy", "true");
         }
 
         function hideLoadingSplash() {
           stopLoadingSplashPhrases();
+          stopLoadingSplashManufactured();
+          loadingSplashPendingRows = null;
           if (window.__efdcEarlyPhraseTimer != null) {
             window.clearInterval(window.__efdcEarlyPhraseTimer);
             window.__efdcEarlyPhraseTimer = null;
@@ -11524,7 +11577,7 @@
           }
           var matrix = parseCSV(text);
           var rows = rowsToObjects(matrix);
-          applyScoreRows(rows);
+          queueApplyScoreRows(rows);
         }
 
         /** Pre-built scores from R / scripts (array of row objects). */
@@ -11548,7 +11601,7 @@
             });
             return o;
           });
-          applyScoreRows(rows);
+          queueApplyScoreRows(rows);
         }
 
         function applyScoreRows(rows) {
@@ -11563,11 +11616,7 @@
             bar.classList.add("is-done");
             bar.style.width = "100%";
           }
-          var splashWait = Math.max(
-            140,
-            LOADING_SPLASH_MIN_MS - (Date.now() - loadingSplashShownAt)
-          );
-          window.setTimeout(hideLoadingSplash, splashWait);
+          window.setTimeout(hideLoadingSplash, LOADING_SPLASH_FINISH_HOLD_MS);
         }
 
         function setText(id, t) {
@@ -19131,10 +19180,11 @@
 
           var urls = buildLoadUrls();
           var index = 0;
-          var total = Math.max(1, urls.length);
 
           function tryNext() {
             if (index >= urls.length) {
+              stopLoadingSplashManufactured();
+              loadingSplashPendingRows = null;
               hideLoadingSplash();
               showLoadError();
               state.rows = [];
@@ -19142,7 +19192,6 @@
               return;
             }
             var u = urls[index++];
-            setLoadingSplashProgress(Math.min(90, Math.round((index / total) * 90)));
             fetchCsvUrl(u)
               .then(function (text) {
                 var pathPart = String(u || "").split("?")[0].split("#")[0];
