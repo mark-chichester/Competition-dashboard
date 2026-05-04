@@ -3943,6 +3943,14 @@
         visibility: hidden;
         pointer-events: none;
       }
+      .app-loading__inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.65rem;
+        width: min(22rem, 86vw);
+        padding: 0 1rem;
+      }
       .app-loading__logo {
         width: min(320px, 72vw);
         height: auto;
@@ -3958,6 +3966,58 @@
           opacity: 1;
           transform: scale(1.06);
         }
+      }
+      .app-loading__track {
+        width: 100%;
+        height: 0.38rem;
+        border-radius: 999px;
+        background: rgba(2, 119, 192, 0.12);
+        overflow: hidden;
+        box-shadow: inset 0 0 0 1px rgba(2, 119, 192, 0.18);
+      }
+      .app-loading__bar {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(
+          90deg,
+          var(--brand-blue) 0%,
+          #0288d1 42%,
+          var(--brand-red) 100%
+        );
+        background-size: 200% 100%;
+        animation: app-loading-bar-shimmer 2.4s ease-in-out infinite;
+        transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .app-loading__bar.is-done {
+        animation: none;
+        width: 100% !important;
+      }
+      @keyframes app-loading-bar-shimmer {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      .app-loading__phrase {
+        margin: 0;
+        min-height: 1.35em;
+        font-family: Mulish, system-ui, sans-serif;
+        font-size: clamp(0.85rem, 2.8vw, 0.98rem);
+        font-weight: 600;
+        font-style: italic;
+        letter-spacing: 0.01em;
+        text-align: center;
+        color: var(--brand-blue);
+        transition: opacity 0.35s ease;
+      }
+      .app-loading__phrase.is-fading {
+        opacity: 0.35;
       }
       .home-hero {
         margin-bottom: 2.5rem;
@@ -6128,13 +6188,21 @@
       aria-label="Loading dashboard"
       role="status"
     >
-      <img
-        class="app-loading__logo"
-        src="https://elitefeetstudio.com/wp-content/uploads/2020/04/logo_elite_feet_dance_studio.svg"
-        alt=""
-        width="320"
-        height="120"
-      />
+      <div class="app-loading__inner">
+        <img
+          class="app-loading__logo"
+          src="https://elitefeetstudio.com/wp-content/uploads/2020/04/logo_elite_feet_dance_studio.svg"
+          alt=""
+          width="320"
+          height="120"
+        />
+        <div class="app-loading__track" aria-hidden="true">
+          <div class="app-loading__bar" id="app-loading-bar"></div>
+        </div>
+        <p class="app-loading__phrase" id="app-loading-phrase" aria-hidden="true">
+          Dancers, take the floor…
+        </p>
+      </div>
     </div>
 
     <header class="site-header">
@@ -11286,18 +11354,86 @@
           return String(row["Dance Name"] || "").trim() === danceTitle;
         }
 
+        var LOADING_SPLASH_PHRASES = [
+          "Dancers, take the floor…",
+          "Running it from the top…",
+          "Places, everyone…",
+          "And five, six, seven, eight…",
+          "Finding your marks…",
+          "Cue the music…",
+          "Checking the wings…",
+          "Smoothing out the transitions…",
+          "Spotlight on the scores…",
+          "Stretch—then performance…",
+        ];
+        var loadingSplashPhraseTimer = null;
+        var loadingSplashPhraseIndex = 0;
+
+        function resetLoadingSplashProgress() {
+          var bar = document.getElementById("app-loading-bar");
+          if (bar) {
+            bar.classList.remove("is-done");
+            bar.style.width = "0%";
+          }
+        }
+
+        function setLoadingSplashProgress(pct) {
+          var bar = document.getElementById("app-loading-bar");
+          if (!bar || bar.classList.contains("is-done")) return;
+          var p = Math.max(0, Math.min(100, pct));
+          bar.style.width = p + "%";
+        }
+
+        function tickLoadingSplashPhrase() {
+          var el = document.getElementById("app-loading-phrase");
+          if (!el) return;
+          loadingSplashPhraseIndex = (loadingSplashPhraseIndex + 1) % LOADING_SPLASH_PHRASES.length;
+          el.classList.add("is-fading");
+          window.setTimeout(function () {
+            el.textContent = LOADING_SPLASH_PHRASES[loadingSplashPhraseIndex];
+            el.classList.remove("is-fading");
+          }, 160);
+        }
+
+        function startLoadingSplashPhrases() {
+          stopLoadingSplashPhrases();
+          var phraseEl = document.getElementById("app-loading-phrase");
+          if (phraseEl) {
+            loadingSplashPhraseIndex = 0;
+            phraseEl.textContent = LOADING_SPLASH_PHRASES[0];
+            phraseEl.classList.remove("is-fading");
+          }
+          loadingSplashPhraseTimer = window.setInterval(tickLoadingSplashPhrase, 2800);
+        }
+
+        function stopLoadingSplashPhrases() {
+          if (loadingSplashPhraseTimer != null) {
+            window.clearInterval(loadingSplashPhraseTimer);
+            loadingSplashPhraseTimer = null;
+          }
+        }
+
         function showLoadingSplash() {
           var el = document.getElementById("app-loading");
           if (!el) return;
+          resetLoadingSplashProgress();
+          startLoadingSplashPhrases();
           el.classList.remove("is-hidden");
           el.setAttribute("aria-busy", "true");
         }
 
         function hideLoadingSplash() {
+          stopLoadingSplashPhrases();
           var el = document.getElementById("app-loading");
-          if (!el) return;
-          el.classList.add("is-hidden");
-          el.setAttribute("aria-busy", "false");
+          if (el) {
+            el.classList.add("is-hidden");
+            el.setAttribute("aria-busy", "false");
+          }
+          var bar = document.getElementById("app-loading-bar");
+          if (bar) {
+            bar.classList.remove("is-done");
+            bar.style.width = "0%";
+          }
         }
 
         function clearLoadError() {
@@ -11358,7 +11494,13 @@
           });
           clearLoadError();
           refreshAllViews();
-          hideLoadingSplash();
+          stopLoadingSplashPhrases();
+          var bar = document.getElementById("app-loading-bar");
+          if (bar) {
+            bar.classList.add("is-done");
+            bar.style.width = "100%";
+          }
+          window.setTimeout(hideLoadingSplash, 140);
         }
 
         function setText(id, t) {
@@ -18922,6 +19064,7 @@
 
           var urls = buildLoadUrls();
           var index = 0;
+          var total = Math.max(1, urls.length);
 
           function tryNext() {
             if (index >= urls.length) {
@@ -18932,6 +19075,7 @@
               return;
             }
             var u = urls[index++];
+            setLoadingSplashProgress(Math.min(90, Math.round((index / total) * 90)));
             fetchCsvUrl(u)
               .then(function (text) {
                 var pathPart = String(u || "").split("?")[0].split("#")[0];
