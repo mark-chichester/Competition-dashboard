@@ -8248,24 +8248,76 @@
           });
         }
 
+        function resolvePageUrl(relativePath) {
+          try {
+            return new URL(relativePath, window.location.href).href;
+          } catch (eResolve) {
+            return relativePath;
+          }
+        }
+
+        /** Local JSON/CSV next to this page (or common project layouts). Always tried first. */
+        function buildLocalScoreUrls() {
+          var candidates = [
+            "dance-scores.json",
+            "data.csv",
+            "../ALL_dance_scores.csv",
+            "../Elite Feet Competition Sco - Sheet1.csv",
+            "html/dance-scores.json",
+            "html/data.csv",
+          ];
+          var seen = {};
+          var out = [];
+          candidates.forEach(function (p) {
+            var u = resolvePageUrl(p);
+            if (seen[u]) return;
+            seen[u] = true;
+            out.push(u);
+          });
+          return out;
+        }
+
+        /** file:// pages cannot rely on fetch(); XHR still reads sibling files in most browsers. */
+        function fetchLocalFileText(url) {
+          return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.overrideMimeType("text/plain");
+            xhr.onload = function () {
+              if (xhr.status === 0 || (xhr.status >= 200 && xhr.status < 300)) {
+                resolve(xhr.responseText);
+              } else {
+                reject(new Error(String(xhr.status)));
+              }
+            };
+            xhr.onerror = function () {
+              reject(new Error("xhr error"));
+            };
+            xhr.onabort = function () {
+              reject(new Error("xhr abort"));
+            };
+            xhr.send();
+          });
+        }
+
         function fetchCsvUrl(url) {
           if (/^https?:\/\//i.test(url)) {
             return fetchWithProxy(url);
+          }
+          if (location.protocol === "file:") {
+            return fetchLocalFileText(url);
           }
           return fetchTextWithTimeout(url, FETCH_TIMEOUT_MS);
         }
 
         function buildLoadUrls() {
-          var out = [];
+          var out = buildLocalScoreUrls();
           var direct = SHEET_CSV_URL;
           var viaAllOrigins = "https://api.allorigins.win/raw?url=" + encodeURIComponent(direct);
           var viaCorsProxy = "https://corsproxy.io/?" + encodeURIComponent(direct);
 
-          if (location.protocol !== "file:") {
-            out.push("dance-scores.json", "data.csv", "../ALL_dance_scores.csv");
-            if (isLocalOrigin() && location.origin && location.origin !== "null") {
-              out.push(location.origin + "/api/dance-scores-sheet");
-            }
+          if (isLocalOrigin() && location.protocol !== "file:" && location.origin && location.origin !== "null") {
+            out.push(location.origin + "/api/dance-scores-sheet");
           }
           if (!isLocalOrigin()) {
             out.push(viaAllOrigins, viaCorsProxy, direct);
@@ -19194,11 +19246,15 @@
             var u = urls[index++];
             fetchCsvUrl(u)
               .then(function (text) {
-                var pathPart = String(u || "").split("?")[0].split("#")[0];
-                if (/\.json$/i.test(pathPart)) {
-                  applyJsonText(text);
-                } else {
-                  applyCsvText(text);
+                try {
+                  var pathPart = String(u || "").split("?")[0].split("#")[0];
+                  if (/\.json$/i.test(pathPart)) {
+                    applyJsonText(text);
+                  } else {
+                    applyCsvText(text);
+                  }
+                } catch (parseErr) {
+                  tryNext();
                 }
               })
               .catch(function () {
