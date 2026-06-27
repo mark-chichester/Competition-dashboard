@@ -7970,6 +7970,7 @@
       </div>
     </div>
 
+    <script src="dance-scores.js" onerror="window.__EFDC_DANCE_SCORES_LOAD_FAILED__ = true"></script>
     <script src="lib/judgingProfile.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"
@@ -7990,7 +7991,7 @@
           "https://docs.google.com/spreadsheets/d/e/2PACX-1vTPt-8-mbGFSjF-yetXEjFQvw_V2QfbsoUQ11F-gvxZg4MjPHBEdsCVaIfqyzJi9OaYLKkdaLiBnyyg/pub?output=csv";
         /** Grand totals above this use 5-judge / ~500 scale; peak compares 3-judge routines only. */
         var PEAK_SCORE_MAX_INCLUSIVE = 300;
-        var FETCH_TIMEOUT_MS = 8000;
+        var FETCH_TIMEOUT_MS = 30000;
         /** Sheet column fallbacks (first non-empty wins). */
         var HIST_AGE_KEYS = ["Age", "age", "Age Group", "Dancer Age"];
         var HIST_SCORE_LEVEL_KEYS = [
@@ -8305,7 +8306,9 @@
             return fetchWithProxy(url);
           }
           if (location.protocol === "file:") {
-            return fetchLocalFileText(url);
+            return fetchTextWithTimeout(url, FETCH_TIMEOUT_MS).catch(function () {
+              return fetchLocalFileText(url);
+            });
           }
           return fetchTextWithTimeout(url, FETCH_TIMEOUT_MS);
         }
@@ -8627,7 +8630,7 @@
             label: "Starpower",
             logo: HUB_COMP_LOGO_URLS[4],
             match: function (c) {
-              return c === "Starpower";
+              return c === "Starpower" || c === "Starpower Nationals";
             },
           },
         ];
@@ -11611,12 +11614,51 @@
           el.innerHTML = "";
         }
 
+        function normalizeJsonScoreRows(data) {
+          if (!Array.isArray(data)) {
+            throw new Error("not json array");
+          }
+          return data.map(function (row) {
+            if (!row || typeof row !== "object") {
+              return {};
+            }
+            var o = {};
+            Object.keys(row).forEach(function (k) {
+              var v = row[k];
+              o[k] = v == null ? "" : String(v).trim();
+            });
+            return o;
+          });
+        }
+
+        /** Embedded by dance-scores.js (works when opening index.html via file://). */
+        function loadEmbeddedScoreData() {
+          var embedded = window.__EFDC_DANCE_SCORES__;
+          if (!embedded || !Array.isArray(embedded) || !embedded.length) return false;
+          try {
+            queueApplyScoreRows(normalizeJsonScoreRows(embedded));
+            return true;
+          } catch (embedErr) {
+            return false;
+          }
+        }
+
         function showLoadError() {
           var el = document.getElementById("data-error");
           if (!el) return;
           el.classList.add("is-visible");
+          var hint = "";
+          if (window.__EFDC_DANCE_SCORES_LOAD_FAILED__) {
+            hint =
+              " <code>dance-scores.js</code> could not be loaded (missing file or blocked). ";
+          } else if (!window.__EFDC_DANCE_SCORES__) {
+            hint =
+              " Embedded score data was not found — regenerate with <code>Rscript scripts/csv_to_json.R</code>. ";
+          }
           el.innerHTML =
-            "Could not load scores from <code>dance-scores.json</code>, local CSV, the published Google Sheet, or CORS proxies. If you use the R script export, add <code>html/dance-scores.json</code> next to this page and run <code>python3 -m http.server</code> from the <code>html</code> folder (or another local server). Or confirm the sheet is published to the web. " +
+            "Could not load scores from embedded <code>dance-scores.js</code>, <code>dance-scores.json</code>, local CSV, the published Google Sheet, or CORS proxies." +
+            hint +
+            "Keep <code>dance-scores.js</code> and <code>dance-scores.json</code> in the same folder as this page, or run <code>python3 -m http.server</code> from the <code>html</code> folder. Or confirm the sheet is published to the web. " +
             '<button type="button" class="link-btn" id="retry-load">Retry fetch</button>';
           var b = document.getElementById("retry-load");
           if (b) b.addEventListener("click", loadData);
@@ -11638,22 +11680,7 @@
           if (!t || t.charAt(0) === "<" || t.toLowerCase().indexOf("<!doctype") !== -1) {
             throw new Error("not json");
           }
-          var data = JSON.parse(t);
-          if (!Array.isArray(data)) {
-            throw new Error("not json array");
-          }
-          var rows = data.map(function (row) {
-            if (!row || typeof row !== "object") {
-              return {};
-            }
-            var o = {};
-            Object.keys(row).forEach(function (k) {
-              var v = row[k];
-              o[k] = v == null ? "" : String(v).trim();
-            });
-            return o;
-          });
-          queueApplyScoreRows(rows);
+          queueApplyScoreRows(normalizeJsonScoreRows(JSON.parse(t)));
         }
 
         function applyScoreRows(rows) {
@@ -19229,6 +19256,10 @@
         function loadData() {
           showLoadingSplash();
           clearLoadError();
+
+          if (loadEmbeddedScoreData()) {
+            return;
+          }
 
           var urls = buildLoadUrls();
           var index = 0;
